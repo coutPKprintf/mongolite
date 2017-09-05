@@ -158,7 +158,7 @@ mongo_object <- function(cols, client, verbose, orig){
       col <- mongo_collection_new(client, collection, orig$db)
       mongo_collection_command_simple(col, '{"ping":1}')
       cols <<- c(cols, col)
-      print(paste0("add new collection name is ", collection))
+#      print(paste0("add new collection name is ", collection))
     }else if(null_ptr(col)){
       message("Connection lost. Trying to reconnect with mongo...")
       if(length(orig$options$pem_file) && !file.exists(orig$options$pem_file)){
