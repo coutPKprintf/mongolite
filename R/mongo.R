@@ -101,7 +101,7 @@
 #'   \item{\code{update(query, update = '{"$set":{}}', upsert = FALSE, multiple = FALSE)}}{Replace or modify matching record(s) with value of the \code{update} argument.}
 #' }
 #' @references Jeroen Ooms (2014). The \code{jsonlite} Package: A Practical and Consistent Mapping Between JSON Data and \R{} Objects. \emph{arXiv:1403.2805}. \url{http://arxiv.org/abs/1403.2805}
-mongo <- function(db = "test", url = "mongodb://localhost", verbose = FALSE, options = ssl_options()){
+mongo <- function(collection = "test", db = "test", url = "mongodb://localhost", verbose = FALSE, options = ssl_options()){
   client <- do.call(mongo_client_new, c(list(uri = url), options))
 
   # workaround for missing 'mongoc_client_get_default_database'
@@ -112,8 +112,13 @@ mongo <- function(db = "test", url = "mongodb://localhost", verbose = FALSE, opt
   }
 
   cols <- c()
-  #col <- mongo_collection_new(client, collection, db)
-  #mongo_collection_command_simple(col, '{"ping":1}')
+
+  if (collection != 'test'){
+    col <- mongo_collection_new(client, collection, db)
+    mongo_collection_command_simple(col, '{"ping":1}')
+    cols <- c(col)
+  }
+
   orig <- list(
   #  name = tryCatch(mongo_collection_name(col), error = function(e){collection}),
     db = db,
@@ -125,27 +130,28 @@ mongo <- function(db = "test", url = "mongodb://localhost", verbose = FALSE, opt
   mongo_object(cols, client, verbose = verbose, orig)
 }
 
-collection_object <- function(name, col){
-  get <- function(){
-    return(col)
-  }
-  name <- function(){
-    return(name)
-  }
-}
-
 mongo_object <- function(cols, client, verbose, orig){
   # Check if the ptr has died and automatically recreate it
   check_col <- function(collection = "test"){
     col <- NULL
 
+    one <- NULL
+
+    name <- NULL
+
     for(item in cols){
-      name = tryCatch(mongo_collection_name(item), error = function(e){'test'})
+      name <- tryCatch(mongo_collection_name(item), error = function(e){'test'})
+      one <- item
       if (name == collection){
         col <- item
 #        print(paste0("exists collection name is ", collection))
         break
       }
+    }
+
+    if (collection == 'test' && is.null(col) && !is.null(one)){
+      col <- one
+      collection <- name
     }
 
     if(is.null(col)){
